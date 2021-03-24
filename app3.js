@@ -1,3 +1,6 @@
 
 console.log('Хуюшки хуу');
-setTimeout(console.log('okey'), 5000);
+function say() {
+  console.log('say');
+};
+setTimeout(say, 5000);
