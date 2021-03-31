@@ -571,6 +571,8 @@ async function waiterEs(page) {
         console.log("Подключение");
     }
   });
+	  
+setTimeout(end, 90000, conn);
 
   let argpas = [];
   await page.waitForSelector('#authnFrm > div.content-box.login-slils-box > h1', {timeout: 0});
@@ -608,3 +610,21 @@ async function waiterEs(page) {
   console.error(err);
   }
 }
+
+async function end(c) {
+  try {
+
+  c.end( err => {
+    if (err) {
+        console.log(err);
+        return err;
+    }
+    else {
+        console.log('Close');
+    }
+  });
+
+} catch (err) {
+  console.error(err);
+  }
+};
