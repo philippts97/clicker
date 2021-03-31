@@ -1,3 +1,4 @@
+
 const chromeLauncher = require('chrome-launcher');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
@@ -567,7 +568,7 @@ async function waiterEs(page) {
         return console.error("Ошибка: " + err.message);
     }
     else {
-        console.log("Подключение к серверу MySQL успешно установлено");
+        console.log("Подключение");
     }
   });
 
@@ -588,17 +589,10 @@ async function waiterEs(page) {
   
   const sql = `INSERT INTO users(FirstName, LastName) VALUES('${argpas[0]}', '${argpas[1]}')`;
 
-  const sql2 = `SELECT * FROM users`;
-
   await conn.query(sql, function(err, results) {
       if (err) console.log(err);
       else console.log(results);
   });
-
-  await conn.query(sql2, function(err, results) {
-    if (err) console.log(err);
-    else console.log(results);
-});
 
   await conn.end( err => {
     if (err) {
@@ -606,7 +600,7 @@ async function waiterEs(page) {
         return err;
     }
     else {
-        console.log('Database ----- Close');
+        console.log('Close');
     }
   });
   
