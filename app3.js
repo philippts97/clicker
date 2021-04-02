@@ -35,7 +35,7 @@ try {
   // startingUrl: 'https://private.proverki.gov.ru/',
 //    ignoreDefaultFlags: true,
 
-  });
+//  });
 //  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
 //  const { webSocketDebuggerUrl } = response.data;
 
