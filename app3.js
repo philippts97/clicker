@@ -1,5 +1,5 @@
 
-
+try {
 console.log('Запуск браузера');
 setTimeout(conlog, 5000);
 function conlog() {
@@ -634,3 +634,7 @@ async function end(c) {
   console.error(err);
   }
 };
+	
+	} catch(err) {
+    console.error(err)
+}
