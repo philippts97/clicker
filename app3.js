@@ -29,6 +29,7 @@ let srok;
 
 (async () => {
 	
+try {
   // Запуск Хрома
   const chrome = await chromeLauncher.launch({
   // startingUrl: 'https://private.proverki.gov.ru/',
@@ -40,7 +41,7 @@ let srok;
 
   // Присоединения puppeteer к Хрому
   const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: null, args: ['--shm-size=1gb'] });
-  try {
+  
   
     const page = await browser.newPage(); // Новая страница
 
