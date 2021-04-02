@@ -9,8 +9,8 @@ const chromeLauncher = require('chrome-launcher');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const XLSX = require('xlsx');
-// const fs = require('fs');
-// const cookiesFilePath = 'cookies.json';
+const fs = require('fs');
+const cookiesFilePath = 'cookies.json';
 // var keypress = require('keypress');
 
 let argument;
@@ -31,32 +31,32 @@ let srok;
 	
 try {
   // Запуск Хрома
-// const chrome = await chromeLauncher.launch({
+ const chrome = await chromeLauncher.launch({
   // startingUrl: 'https://private.proverki.gov.ru/',
-//    ignoreDefaultFlags: true,
+ ignoreDefaultFlags: true,
 
-//  });
-//  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
-//  const { webSocketDebuggerUrl } = response.data;
+ });
+  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
+  const { webSocketDebuggerUrl } = response.data;
 
   // Присоединения puppeteer к Хрому
-  const browser = await puppeteer.launch({ headless: false, defaultViewport: null, args: ['--shm-size=1gb'] });
+  const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: null, args: ['--shm-size=1gb'] });
   
   
     const page = await browser.newPage(); // Новая страница
 
- //   const previousSession = fs.existsSync(cookiesFilePath);
- //   if (previousSession) {
- //     // If file exist load the cookies
- //     const cookiesString = fs.readFileSync(cookiesFilePath);
- //     const parsedCookies = JSON.parse(cookiesString);
- //     if (parsedCookies.length !== 0) {
- //       for (let cookie of parsedCookies) {
- //         await page.setCookie(cookie)
- //       }
- //       console.log('Session has been loaded in the browser')
- //     }
- //   }
+   const previousSession = fs.existsSync(cookiesFilePath);
+   if (previousSession) {
+     // If file exist load the cookies
+     const cookiesString = fs.readFileSync(cookiesFilePath);
+     const parsedCookies = JSON.parse(cookiesString);
+     if (parsedCookies.length !== 0) {
+       for (let cookie of parsedCookies) {
+         await page.setCookie(cookie)
+       }
+       console.log('Session has been loaded in the browser')
+     }
+   }
     
     await page.goto('https://private.proverki.gov.ru/', {waitUntil: 'networkidle2', timeout: 0}); // Переход на сайт ЕРП
     
