@@ -23,18 +23,8 @@ let srok;
 
 (async () => {
 
-
-  // Запуск Хрома
-  const chrome = await chromeLauncher.launch({
-  // startingUrl: 'https://private.proverki.gov.ru/',
-    ignoreDefaultFlags: true,
-
-  });
-  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
-  const { webSocketDebuggerUrl } = response.data;
-
   // Присоединения puppeteer к Хрому
-  const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: null, args: ['--shm-size=1gb'] });
+  const browser = await puppeteer.launch({ headless: false, defaultViewport: null, args: ['--shm-size=1gb'] });
   try {
   
     const page = await browser.newPage(); // Новая страница
@@ -59,7 +49,8 @@ let srok;
     await browser.on('targetcreated', async (target) => { // данный блок перехватывает все новые события
       if (target.type() === 'page') {               // и если это новая страница/вкладка
         let page2 = await target.page();      // то объявляем ее
-        let url = page2.url();                // смотрим её url
+	await page2.waitFor(1000);
+        let url = await page2.url();                // смотрим её url
         console.log(url.search('https://private.proverki.gov.ru/private/knm/'));
         if (url.search('https://private.proverki.gov.ru/private/knm/') == 0){     // и если он не совпадает с нашим запускаем функцию добавления кнопок
           main(page2);
