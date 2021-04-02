@@ -1,5 +1,5 @@
+
 try {
-console.log('Запуск браузера');
 setTimeout(conlog, 5000);
 function conlog() {
 console.log('Запуск браузера')
