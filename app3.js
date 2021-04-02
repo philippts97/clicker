@@ -1,4 +1,10 @@
 
+
+console.log('Запуск браузера');
+setTimeout(conlog, 5000);
+function conlog() {
+console.log('Запуск браузера')
+}
 const chromeLauncher = require('chrome-launcher');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
