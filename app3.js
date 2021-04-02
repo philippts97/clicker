@@ -31,16 +31,16 @@ let srok;
 	
 try {
   // Запуск Хрома
-  const chrome = await chromeLauncher.launch({
+// const chrome = await chromeLauncher.launch({
   // startingUrl: 'https://private.proverki.gov.ru/',
-    ignoreDefaultFlags: true,
+//    ignoreDefaultFlags: true,
 
   });
-  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
-  const { webSocketDebuggerUrl } = response.data;
+//  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
+//  const { webSocketDebuggerUrl } = response.data;
 
   // Присоединения puppeteer к Хрому
-  const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: null, args: ['--shm-size=1gb'] });
+  const browser = await puppeteer.launch({ headless: false, defaultViewport: null, args: ['--shm-size=1gb'] });
   
   
     const page = await browser.newPage(); // Новая страница
