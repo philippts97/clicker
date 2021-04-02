@@ -9,8 +9,8 @@ const chromeLauncher = require('chrome-launcher');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const XLSX = require('xlsx');
-const fs = require('fs');
-const cookiesFilePath = 'cookies.json';
+// const fs = require('fs');
+// const cookiesFilePath = 'cookies.json';
 // var keypress = require('keypress');
 
 let argument;
@@ -84,15 +84,15 @@ async function main(arg) { // функция добавления кнопки c
   try {
     await arg.waitForSelector('.Button_Button__1Lgtt.Button_ButtonPrimary__16bJT.shared_AddButton__2KCtS.ButtonPrimary.Button_ButtonLarge__2nYMX.Button_ButtonLink__1HIst', {timeout: 0})
     // Save Session Cookies
-    const cookiesObject = await arg.cookies();
+//    const cookiesObject = await arg.cookies();
     // Write cookies to temp file to be used in other profile pages
-    fs.writeFile(cookiesFilePath, JSON.stringify(cookiesObject),
-    function(err) { 
-      if (err) {
-        console.log('The file could not be written.', err)
-      }
-      console.log('Session has been successfully saved')
-      })
+//    fs.writeFile(cookiesFilePath, JSON.stringify(cookiesObject),
+//    function(err) { 
+//      if (err) {
+//        console.log('The file could not be written.', err)
+//      }
+//      console.log('Session has been successfully saved')
+//      })
 
       deydown(arg);
 
