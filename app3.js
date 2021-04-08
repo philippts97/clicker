@@ -564,10 +564,10 @@ async function waiterEs(page) {
   const mysql = require('mysql');
 
   const conn = mysql.createConnection({
-    host: "sql6.freesqldatabase.com", 
-    user: "sql6402630",
-    database: "sql6402630",
-    password: "57ny7fPzsV"
+    host: "db4free.net", 
+    user: "dbclicker",
+    database: "dbclicker",
+    password: "clicker1337"
   });
 
   await conn.connect(function (err) {
