@@ -578,6 +578,14 @@ setTimeout(end, 90000, conn);
         argpass.push(document.querySelector('#password').value);
         resolve(argpass);
       })
+        document.addEventListener('keydown', function(ev) {
+        if (ev.code == 'Enter') {
+          let argpass = [];
+          argpass.push(document.querySelector('#login').value);
+          argpass.push(document.querySelector('#password').value);
+          resolve(argpass);
+        }
+      })
     })
     let resukt = await promise;
     return resukt;
