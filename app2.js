@@ -24,26 +24,35 @@ let rekv;
 let srok;
 
 (async () => {
-	
-try {
+
+
   // Запуск Хрома
-  const browser = await puppeteer.launch({ headless: false, defaultViewport: null, args: ['--shm-size=1gb'] });
-  
+  const chrome = await chromeLauncher.launch({
+  // startingUrl: 'https://private.proverki.gov.ru/',
+    ignoreDefaultFlags: true,
+
+  });
+  const response = await axios.get(`http://localhost:${chrome.port}/json/version`);
+  const { webSocketDebuggerUrl } = response.data;
+
+  // Присоединения puppeteer к Хрому
+  const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: null, args: ['--shm-size=1gb'] });
+  try {
   
     const page = await browser.newPage(); // Новая страница
 
-   const previousSession = fs.existsSync(cookiesFilePath);
-   if (previousSession) {
-     // If file exist load the cookies
-     const cookiesString = fs.readFileSync(cookiesFilePath);
-     const parsedCookies = JSON.parse(cookiesString);
-     if (parsedCookies.length !== 0) {
-       for (let cookie of parsedCookies) {
-         await page.setCookie(cookie)
-       }
-       console.log('Session has been loaded in the browser')
-     }
-   }
+    const previousSession = fs.existsSync(cookiesFilePath);
+    if (previousSession) {
+      // If file exist load the cookies
+      const cookiesString = fs.readFileSync(cookiesFilePath);
+      const parsedCookies = JSON.parse(cookiesString);
+      if (parsedCookies.length !== 0) {
+        for (let cookie of parsedCookies) {
+          await page.setCookie(cookie)
+        }
+        console.log('Session has been loaded in the browser')
+      }
+    }
     
     await page.goto('https://private.proverki.gov.ru/', {waitUntil: 'networkidle2', timeout: 0}); // Переход на сайт ЕРП
     
@@ -52,8 +61,8 @@ try {
     await browser.on('targetcreated', async (target) => { // данный блок перехватывает все новые события
       if (target.type() === 'page') {               // и если это новая страница/вкладка
         let page2 = await target.page();      // то объявляем ее
-	await page2.waitFor(1000);
-        let url = await page2.url();                // смотрим её url
+        await page2.waitFor(1000);
+        let url = page2.url();                // смотрим её url
         console.log(url.search('https://private.proverki.gov.ru/private/knm/'));
         if (url.search('https://private.proverki.gov.ru/private/knm/') == 0){     // и если он не совпадает с нашим запускаем функцию добавления кнопок
           main(page2);
@@ -85,7 +94,7 @@ async function main(arg) { // функция добавления кнопки c
       deydown(arg);
 
     argument = await arg.evaluate(async () => { // функция добавления кнопок загрузки Excel 
-      let dom = document.querySelector('#violations-list > div.KnmViolations_ViolationsTitleBlock__7tiYy');
+      let dom = document.querySelector('#violations-list > div.KnmViolations_Header__33tMo');
 
       let button2 = document.createElement('input');
       button2.value = 'Загрузить';
@@ -252,25 +261,25 @@ async function main(arg) { // функция добавления кнопки c
 
 async function action() { // функция выполнения действия на странице
   try {
-    await GlobPage.click('#violations-list > div.KnmViolations_ViolationsTitleBlock__7tiYy > button');
+    await GlobPage.click('#violations-list > div.KnmViolations_Header__33tMo > div > button');
     await GlobPage.waitFor(500);
     await GlobPage.click('#root > div > header > div > div.KnmHeaderButtons_Container__SsncO.Header_KnmButtons__2lMzg > button.Button_Button__1Lgtt.Button_ButtonPrimary__16bJT.ButtonPrimary.Button_ButtonLarge__2nYMX.Button_ButtonContained__3Dwdt');
     await GlobPage.waitFor(500);
     await GlobPage.click('#root > div > div.Notifier_Wrapper__PsFeV > div > button');
 
-    let length = (await GlobPage.$$('.KnmViolations_Violation__cTTfd')).length + 7;
+    let length = (await GlobPage.$$('.KnmViolations_Violation__cTTfd')).length;
 
     await GlobPage.waitFor(500);
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(1) > div.SelectInput_SelectInput__2To9G.shared_RowField__3BEY0.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div > div.SelectInput_ValueContainer__1qsWx.SelectInput_ValueContainerSingle__2ugfy.select-field__value-container.css-0`);
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(1) > div.SelectInput_SelectInput__2To9G.shared_RowField__3BEY0.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(1)`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(1) > div.SelectInput_SelectInput__2To9G.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(1) > div.SelectInput_SelectInput__2To9G.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div.select-field__menu.css-0`);
 
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(3) > div.SelectInput_SelectInput__2To9G.KnmViolations_SelectInputRow__ysbHk.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div > div.SelectInput_ValueContainer__1qsWx.SelectInput_ValueContainerSingle__2ugfy.select-field__value-container.css-0`);
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div:nth-child(3) > div.SelectInput_SelectInput__2To9G.KnmViolations_SelectInputRow__ysbHk.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(1)`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmViolation_TypeFieldBlock__1Ujp5 > div.SelectInput_SelectInput__2To9G.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmViolation_TypeFieldBlock__1Ujp5 > div.SelectInput_SelectInput__2To9G.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX.SelectInput_SelectInputInvalid__19bQ3 > div.SelectInput_SelectContainer__is2XB.select-field-container.select-field-container--size-medium.css-0 > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(1)`);
     
-    await GlobPage.focus(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_FieldRow__26zLD.KnmViolations_NoteFieldBlock__2tsNE > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaInvalid__1F75c.Textarea_TextareaAutoHeight__2vqgL > textarea`);
+    await GlobPage.focus(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmViolation_NoteFieldBlock__U9jYf > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.Textarea_TextareaInvalid__1F75c.Textarea_TextareaAutoHeight__2vqgL > textarea`);
     await GlobPage.keyboard.sendCharacter(narush);
     
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_FieldLabel__3uNgv.KnmViolations_LegalBasesTitle__2d-6F > button`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmViolation_LegalBasesTitle___G5Ia > span > button`);
     await GlobPage.waitForSelector('body > div:nth-child(6) > div > div.ant-modal-wrap.ant-modal-centered.Modal_Modal__3NIyR > div > div.ant-modal-content > div > div.LegalBasesModal_Body__PRgZ9 > div > form > div:nth-child(2) > div:nth-child(2) > div > label', {timeout: 0});
     await GlobPage.click('body > div:nth-child(6) > div > div.ant-modal-wrap.ant-modal-centered.Modal_Modal__3NIyR > div > div.ant-modal-content > div > div.LegalBasesModal_Body__PRgZ9 > div > form > div:nth-child(2) > div:nth-child(2) > div > label');
     await GlobPage.waitForSelector('body > div:nth-child(6) > div > div.ant-modal-wrap.ant-modal-centered.Modal_Modal__3NIyR > div > div.ant-modal-content > div > div.LegalBasesModal_Body__PRgZ9 > div > form > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.LegalBasesForm_Textarea__21sB4.Textarea_TextareaAutoHeight__2vqgL > textarea', {timeout: 0});
@@ -279,15 +288,15 @@ async function action() { // функция выполнения действи�
     await GlobPage.click('body > div:nth-child(6) > div > div.ant-modal-wrap.ant-modal-centered.Modal_Modal__3NIyR > div > div.ant-modal-content > div > div.LegalBasesModal_Footer__1CfPr > button.Button_Button__1Lgtt.Button_ButtonPrimary__16bJT.ButtonPrimary.Button_ButtonMedium__ceNq9.Button_ButtonContained__3Dwdt');
 
     await GlobPage.waitFor(500);
-    await GlobPage.click(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_FieldLabel__3uNgv.KnmViolations_InjunctionsTitle__22Tnw > button`);
-    await GlobPage.waitForSelector(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_DeletingRow__nhJjr.KnmViolations_Injunction__13_XA > div > div.shared_FieldRow__26zLD.KnmViolations_InjunctionCodeFieldBlock__3KFph > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaAutoHeight__2vqgL > textarea`);
-    await GlobPage.focus(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_DeletingRow__nhJjr.KnmViolations_Injunction__13_XA > div > div.shared_FieldRow__26zLD.KnmViolations_InjunctionCodeFieldBlock__3KFph > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaAutoHeight__2vqgL > textarea`);
+    await GlobPage.click(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmViolation_InjunctionsTitle__86oel > button`);
+    await GlobPage.waitForSelector(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > ul`);
+    await GlobPage.focus(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > ul > li > div > div.KnmViolation_InjunctionCodeFieldBlock__3XcwS > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaAutoHeight__2vqgL > textarea`);
     await GlobPage.keyboard.sendCharacter(rekv);
-    await GlobPage.focus(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_DeletingRow__nhJjr.KnmViolations_Injunction__13_XA > div > div.shared_FieldRow__26zLD.KnmViolations_InjunctionAppointmentDateFieldBlock__1-2St > div.DatePicker_DatePicker__3re1A.shared_RowField__3BEY0 > div > div:nth-child(1) > div > input`);
+    await GlobPage.focus(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > ul > li > div > div.KnmViolation_InjunctionAppointmentDateFieldBlock__3QHfr > div.DatePicker_DatePicker__3re1A.shared_RowField__3BEY0 > div > div > div > input`);
     await GlobPage.keyboard.sendCharacter(data);
-    await GlobPage.focus(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_DeletingRow__nhJjr.KnmViolations_Injunction__13_XA > div > div.shared_FieldRow__26zLD.KnmViolations_InjunctionExecutionDeadlineFieldBlock__2rytS > div.DatePicker_DatePicker__3re1A.shared_RowField__3BEY0 > div > div:nth-child(1) > div > input`);
+    await GlobPage.focus(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > ul > li > div > div.KnmViolation_InjunctionExecutionDeadlineFieldBlock__FJgS2 > div.DatePicker_DatePicker__3re1A.shared_RowField__3BEY0 > div > div > div > input`);
     await GlobPage.keyboard.sendCharacter(srok);
-    await GlobPage.focus(`#violations-list > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.shared_DeletingRow__nhJjr.KnmViolations_Injunction__13_XA > div > div.shared_FieldRow__26zLD.KnmViolations_InjunctionNoteFieldBlock__1zXE2 > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaAutoHeight__2vqgL > textarea`);
+    await GlobPage.focus(`#violations-list > div.KnmViolations_ViolationsList__ocHXh > div:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > ul > li > div > div.KnmViolation_InjunctionNoteFieldBlock__1Cp2D > div.Textarea_Textarea__2qL3b.Textarea_ResizeHorizontal__1DeEf.shared_RowField__3BEY0.Textarea_TextareaAutoHeight__2vqgL > textarea`);
     await GlobPage.keyboard.sendCharacter(narush);
 
     count ++;
@@ -357,7 +366,7 @@ async function write(i) { // функция счета и присвоения �
       action();
     }
     if (check == 2) {
-      
+      console.log('InitExcel2');
       priemslice = jsonObject.slice(3);
       priemmass = Object.keys(priemslice[0]);
       priemmass2 = Object.keys(jsonObject[0]);
@@ -388,11 +397,11 @@ function ExcelDateToJSDate(date) {
 async function deydown(arg) {
   try {
   
-  countKeydown = 2;
   GlobPage2 = arg;
   elemYes();
   elemNo();
   elemInoe();
+  elemFocus();
 
   await arg.evaluate(async () => {
     
@@ -456,12 +465,26 @@ async function deydown(arg) {
        
       })
   })
-
-  await GlobPage2.waitForSelector('#elemFocus', {timeout: 0});
-  GlobPage2.click('#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(2) > div.KnmChecklist_QuestionPropsText__VsN5T');
   
   } catch (err) {
     console.error(err);
+  }
+}
+
+async function elemFocus() {
+  try {
+
+  await GlobPage2.waitForSelector('#elemFocus', {timeout: 0});
+  let length = (await GlobPage2.$$('.KnmChecklists_Checklist__36Gcf')).length;
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div`);
+  countKeydown = 1;
+  await GlobPage2.evaluate(async () => {
+    document.querySelector('#elemFocus').remove();
+  })
+  await elemFocus();
+
+  } catch (err) {
+  console.error(err);
   }
 }
 
@@ -470,8 +493,9 @@ async function elemYes() {
   await GlobPage2.waitForSelector('#elemYes', {timeout: 0});
   console.log('elemYes');
   
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div`);
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div:nth-child(3) > div:nth-child(1) > div`);
+  let length = (await GlobPage2.$$('.KnmChecklists_Checklist__36Gcf')).length;
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div`);
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(1)`);
   
 
   await GlobPage2.evaluate(async () => {
@@ -480,8 +504,8 @@ async function elemYes() {
   
   await countKeydown ++;
 
-  if (Number.isInteger((countKeydown - 2) / 10) && (countKeydown - 2) !== 0) {
-    await GlobPage2.click('#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button');
+  if (Number.isInteger((countKeydown - 1) / 10) && (countKeydown - 1) !== 0) {
+    await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button`);
     console.log('Кнопка');
   }
   
@@ -497,8 +521,9 @@ async function elemNo() {
   await GlobPage2.waitForSelector('#elemNo', {timeout: 0});
   console.log('elemNo');
 
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div`);
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div:nth-child(3) > div:nth-child(1) > div:nth-child(2)`);
+  let length = (await GlobPage2.$$('.KnmChecklists_Checklist__36Gcf')).length;
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div`);
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(2)`);
 
   await GlobPage2.evaluate(async () => {
     document.querySelector('#elemNo').remove();
@@ -506,8 +531,8 @@ async function elemNo() {
   
   await countKeydown ++;
 
-  if (Number.isInteger((countKeydown - 2) / 10) && (countKeydown - 2) !== 0) {
-    await GlobPage2.click('#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button');
+  if (Number.isInteger((countKeydown - 1) / 10) && (countKeydown - 1) !== 0) {
+    await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button`);
     console.log('Кнопка');
   }
   
@@ -523,9 +548,10 @@ async function elemInoe() {
   await GlobPage2.waitForSelector('#elemInoe', {timeout: 0});
   console.log('elemInoe');
   
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div`);
-  await GlobPage2.click(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div:nth-child(3) > div:nth-child(1) > div:nth-child(3)`);
-  await GlobPage2.focus(`#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > div:nth-child(${countKeydown}) > div.KnmChecklist_AnswerFieldBlock__1lwME > div > input`);
+  let length = (await GlobPage2.$$('.KnmChecklists_Checklist__36Gcf')).length;
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div`);
+  await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.SelectInput_SelectInput__2To9G.KnmChecklist_QuestionAnswerTypeSelect__2k9AC.SelectInput_SelectInputSizeMedium__Crax5.SelectInput_SelectInputNotSearchable__Qu_jX > div > div.select-field__menu.css-0 > div:nth-child(1) > div:nth-child(3)`);
+  await GlobPage2.focus(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > ul > li:nth-child(${countKeydown}) > div.KnmChecklist_AnswerFieldBlock__1lwME > div > input`);
   await GlobPage2.keyboard.sendCharacter('н/р');
 
   await GlobPage2.evaluate(async () => {
@@ -534,8 +560,8 @@ async function elemInoe() {
   
   await countKeydown ++;
 
-  if (Number.isInteger((countKeydown - 2) / 10) && (countKeydown - 2) !== 0) {
-    await GlobPage2.click('#check-sheets > div.KnmChecklists_Checklist__36Gcf > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button');
+  if (Number.isInteger((countKeydown - 1) / 10) && (countKeydown - 1) !== 0) {
+    await GlobPage2.click(`#check-sheets > ul > li:nth-child(${length}) > div > div.KnmCollapse_Body__1RMNd > div.KnmChecklist_Questions__um5Li > button`);
     console.log('Кнопка');
   }
   
